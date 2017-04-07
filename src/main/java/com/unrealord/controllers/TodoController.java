@@ -7,9 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/todos")
 public class TodoController {
 
     private TodoRepository todoRepository;
@@ -19,14 +22,21 @@ public class TodoController {
         this.todoRepository = todoRepository;
     }
 
-    @RequestMapping(value = "/todos", method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<Todo>> getTodos() {
+        List<Todo> todos = new ArrayList<>();
+        todoRepository.findAll().iterator().forEachRemaining(todos::add);
+        return new ResponseEntity<>(todos, HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Todo> createTodo(@RequestBody Todo todo) {
         todo.setUuid(UUID.randomUUID().toString());
         Todo createdTodo = todoRepository.save(todo);
         return new ResponseEntity<>(createdTodo, HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/todos/{uuid}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
     public ResponseEntity<Todo> getTodo(@PathVariable("uuid") String uuid) {
         Todo todo = todoRepository.findByUuid(uuid);
         if(todo == null) {
